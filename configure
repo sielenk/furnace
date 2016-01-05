@@ -676,6 +676,7 @@ ac_user_opts='
 enable_option_checking
 enable_silent_rules
 enable_dependency_tracking
+with_mysql
 '
       ac_precious_vars='build_alias
 host_alias
@@ -1306,6 +1307,11 @@ Optional Features:
                           do not reject slow dependency extractors
   --disable-dependency-tracking
                           speeds up one-time build
+
+Optional Packages:
+  --with-PACKAGE[=ARG]    use PACKAGE [ARG=yes]
+  --without-PACKAGE       do not use PACKAGE (same as --with-PACKAGE=no)
+  --with-mysql=PATH       path to mysql_config binary or mysql prefix dir
 
 Some influential environment variables:
   CXX         C++ compiler command
@@ -3097,6 +3103,105 @@ else
   am__fastdepCXX_TRUE='#'
   am__fastdepCXX_FALSE=
 fi
+
+
+
+  { $as_echo "$as_me:${as_lineno-$LINENO}: checking for mysql_config executable" >&5
+$as_echo_n "checking for mysql_config executable... " >&6; }
+
+  # try to find the mysql_config script,
+  # --with-mysql will either accept its path directly
+  # or will treat it as the mysql install prefix and will
+  # search for the script in there
+  # if no path is given at all we look for the script in
+  # /usr/bin and /usr/local/mysql/bin
+
+# Check whether --with-mysql was given.
+if test "${with_mysql+set}" = set; then :
+  withval=$with_mysql;
+    if test $withval = "no"
+    then
+      MYSQL_CONFIG="no"
+    else
+      if test -x $withval -a -f $withval
+      then
+        MYSQL_CONFIG=$withval
+        MYSQL_PREFIX=`dirname \`dirname $withval\``
+      else
+        for _MC in $MYSQL_CONFIG_ALTERNATIVES
+        do
+          if test -x $withval/bin/$_MC -a -f $withval/bin/$_MC
+          then
+            MYSQL_CONFIG=$withval/bin/$_MC
+            MYSQL_PREFIX=$withval
+ 	    break
+	  fi
+        done
+      fi
+    fi
+
+else
+
+    # implicit "yes", check in $PATH and in known default prefix,
+    # but only if source not already configured
+    if test "x$MYSQL_SRCDIR" != "x"
+    then
+      MYSQL_CONFIG="no"
+    elif MYSQL_CONFIG=`which mysql_config`
+    then
+      MYSQL_PREFIX=`dirname \`dirname $MYSQL_CONFIG\``
+    else
+      for _MC in $MYSQL_CONFIG_ALTERNATIVES
+      do
+        if test -x $withval/bin/$_MC -a -f $withval/bin/$_MC
+        then
+          MYSQL_CONFIG=$withval/bin/$_MC
+          MYSQL_PREFIX=$withval
+          break
+        fi
+      done
+    fi
+
+fi
+
+
+  if test "x$MYSQL_CONFIG" = "x"
+  then
+    as_fn_error $? "not found" "$LINENO" 5
+  elif test "$MYSQL_CONFIG" = "no"
+  then
+    MYSQL_CONFIG=""
+    MYSQL_PREFIX=""
+    { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+  else
+    if test "x$MYSQL_SRCDIR" != "x"
+    then
+      as_fn_error $? "\"--with-mysql can't be used together with --with-mysql-src\"" "$LINENO" 5
+    else
+      # get installed version
+      MYSQL_VERSION=`$MYSQL_CONFIG --version`
+
+      MYSQL_CONFIG_INCLUDE=`$MYSQL_CONFIG --include`
+      MYSQL_CONFIG_LIBS_R=`$MYSQL_CONFIG --libs_r`
+
+      { $as_echo "$as_me:${as_lineno-$LINENO}: result: $MYSQL_CONFIG" >&5
+$as_echo "$MYSQL_CONFIG" >&6; }
+    fi
+  fi
+
+  if test -x "$MYSQL_CONFIG"
+  then
+    MYSQL_FORK=mysql
+    include_dir=`$MYSQL_CONFIG --variable=pkgincludedir`
+    if grep -q ndb "$include_dir"/mysql_version.h
+    then
+      MYSQL_FORK=mysql_cluster
+    elif grep -q MariaDB "$include_dir"/mysql_version.h
+    then
+      MYSQL_FORK=mariadb
+    fi
+  fi
 
 
 

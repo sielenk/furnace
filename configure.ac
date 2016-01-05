@@ -6,10 +6,12 @@ AM_INIT_AUTOMAKE([-Wall -Werror])
 AC_CONFIG_SRCDIR([main.cpp])
 AC_CONFIG_HEADERS([config.h])
 AC_CONFIG_FILES([Makefile])
-AC_CONFIG_MACRO_DIR([m4])
+AC_CONFIG_MACRO_DIR([mysql-m4])
 
 # Checks for programs.
 AC_PROG_CXX
+WITH_MYSQL()
+
 
 # Checks for libraries.
 

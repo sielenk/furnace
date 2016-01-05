@@ -27,5 +27,8 @@
 *.out
 *.app
 
+# Autotools files
+autom4te.cache
+
 # Backup files
 *~
