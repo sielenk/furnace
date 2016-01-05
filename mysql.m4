@@ -39,8 +39,6 @@
 
 MYSQL_VERSION=none
 
-MYSQL_CONFIG_ALTERNATIVES="mysql_config mariadb_config"
-
 dnl check for a --with-mysql configure option and set up
 dnl MYSQL_CONFIG and MYSLQ_VERSION variables for further use
 dnl this must always be called before any other macro from this file
@@ -50,6 +48,9 @@ dnl WITH_MYSQL()
 dnl
 AC_DEFUN([WITH_MYSQL], [ 
   AC_MSG_CHECKING(for mysql_config executable)
+
+  MYSQL_CONFIG_ALTERNATIVES="mysql_config mariadb_config"
+  MYSQL_DEFAULT_PATHS="/usr /usr/local/mysql"
 
   # try to find the mysql_config script,
   # --with-mysql will either accept its path directly
@@ -67,14 +68,17 @@ AC_DEFUN([WITH_MYSQL], [
         MYSQL_CONFIG=$withval
         MYSQL_PREFIX=`dirname \`dirname $withval\``
       else
-        for _MC in $MYSQL_CONFIG_ALTERNATIVES
-        do 
-          if test -x $withval/bin/$_MC -a -f $withval/bin/$_MC
-          then 
-            MYSQL_CONFIG=$withval/bin/$_MC
-            MYSQL_PREFIX=$withval
- 	    break
-	  fi
+        for _PATH in $MYSQL_DEFAULT_PATHS
+        do
+          for _MC in $MYSQL_CONFIG_ALTERNATIVES
+          do
+            if test -x $_PATH/bin/$_MC -a -f $_PATH/bin/$_MC
+            then
+              MYSQL_CONFIG=$_PATH/bin/$_MC
+              MYSQL_PREFIX=$_PATH
+              break
+	    fi
+          done
         done
       fi
     fi
@@ -91,7 +95,7 @@ AC_DEFUN([WITH_MYSQL], [
       for _MC in $MYSQL_CONFIG_ALTERNATIVES
       do 
         if test -x $withval/bin/$_MC -a -f $withval/bin/$_MC
-        then 
+        then
           MYSQL_CONFIG=$withval/bin/$_MC
           MYSQL_PREFIX=$withval
           break
