@@ -12,4 +12,6 @@ Db::Db(char* passwd) : m_mysqlPtr(mysql_init(nullptr)) {
             << std::endl << mysql_error(m_mysqlPtr) << std::endl;
 }
 
-Db::~Db() { mysql_close(m_mysqlPtr); }
+Db::~Db() {
+  mysql_close(m_mysqlPtr);
+}
