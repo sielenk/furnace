@@ -2,18 +2,30 @@
 
 #include "db.hpp"
 
+#include <mariadb/mysql.h>
 #include <iostream>
 
-Db::Db(char* passwd) : m_mysqlPtr(mysql_init(nullptr)) {
-  auto const p(mysql_real_connect(m_mysqlPtr, "192.168.2.51",
+
+struct Db::Impl : boost::noncopyable {
+  MYSQL mysql;
+
+  Impl()
+    : mysql() {
+    mysql_init(&mysql);
+  }
+};
+
+
+Db::Db(char* passwd) : m_implPtr(new Impl()) {
+  auto& mysql(m_implPtr->mysql);
+  auto const p(mysql_real_connect(&mysql, "192.168.2.51",
                                   "furnace", passwd, "furnace", 3306,
                                   nullptr, CLIENT_COMPRESS));
 
-  std::cout << p << " " << m_mysqlPtr << std::endl
-            << mysql_errno(m_mysqlPtr) << std::endl
-            << mysql_error(m_mysqlPtr) << std::endl;
+  std::cout << p << " " << &mysql << std::endl
+            << mysql_errno(&mysql) << std::endl
+            << mysql_error(&mysql) << std::endl;
 }
 
 Db::~Db() {
-  mysql_close(m_mysqlPtr);
 }

@@ -1,7 +1,8 @@
 // (C) 2016 Marvin Sielenkemper
 
-#include <mariadb/mysql.h>
 #include <boost/noncopyable.hpp>
+#include <memory>
+
 
 class Db : boost::noncopyable {
  public:
@@ -9,5 +10,7 @@ class Db : boost::noncopyable {
   ~Db();
 
  private:
-  MYSQL* m_mysqlPtr;
+  struct Impl;
+
+  std::unique_ptr<Impl> m_implPtr;
 };
