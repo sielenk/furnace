@@ -2,16 +2,18 @@
 
 AC_PREREQ([2.69])
 AC_INIT([furnace], [0.1], [sielenk@gmx.de])
-AM_INIT_AUTOMAKE([-Wall -Werror])
+AM_INIT_AUTOMAKE()
 AC_CONFIG_SRCDIR([main.cpp])
 AC_CONFIG_HEADERS([config.h])
 AC_CONFIG_FILES([Makefile])
 AC_CONFIG_MACRO_DIR([mysql-m4])
 
-# Checks for programs.
-AC_PROG_CXX
 WITH_MYSQL()
+MYSQL_USE_CLIENT_API()
+MYSQL_SUBST()
 
+# Checks for programs.
+AC_PROG_CXX([g++])
 
 # Checks for libraries.
 
