@@ -23,16 +23,20 @@
 *.lib
 
 # Executables
+furnace
 *.exe
 *.out
 *.app
 
 # Autotools files
+.deps
 Makefile
 autom4te.cache
 config.log
 config.status
 config.h
+compile
+stamp-h1
 
 # Backup files
 *~
