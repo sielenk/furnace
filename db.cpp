@@ -9,8 +9,7 @@
 struct Db::Impl : boost::noncopyable {
   MYSQL mysql;
 
-  Impl()
-    : mysql() {
+  Impl() : mysql() {
     mysql_init(&mysql);
   }
 };
@@ -18,13 +17,12 @@ struct Db::Impl : boost::noncopyable {
 
 Db::Db(char* passwd) : m_implPtr(new Impl()) {
   auto& mysql(m_implPtr->mysql);
-  auto const p(mysql_real_connect(&mysql, "192.168.2.51",
-                                  "furnace", passwd, "furnace", 3306,
-                                  nullptr, CLIENT_COMPRESS));
+  auto const p(mysql_real_connect(&mysql, "192.168.2.51", "furnace",
+                                  passwd, "furnace", 3306, nullptr,
+                                  CLIENT_COMPRESS));
 
-  std::cout << p << " " << &mysql << std::endl
-            << mysql_errno(&mysql) << std::endl
-            << mysql_error(&mysql) << std::endl;
+  std::cout << p << " " << &mysql << std::endl << mysql_errno(&mysql)
+            << std::endl << mysql_error(&mysql) << std::endl;
 }
 
 Db::~Db() {

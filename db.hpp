@@ -5,11 +5,11 @@
 
 
 class Db : boost::noncopyable {
- public:
+public:
   Db(char* passwd);
   ~Db();
 
- private:
+private:
   struct Impl;
 
   std::unique_ptr<Impl> m_implPtr;
