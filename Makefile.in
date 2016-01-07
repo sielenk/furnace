@@ -96,7 +96,7 @@ CONFIG_CLEAN_FILES =
 CONFIG_CLEAN_VPATH_FILES =
 am__installdirs = "$(DESTDIR)$(bindir)"
 PROGRAMS = $(bin_PROGRAMS)
-am_furnace_OBJECTS = main.$(OBJEXT)
+am_furnace_OBJECTS = main.$(OBJEXT) db.$(OBJEXT)
 furnace_OBJECTS = $(am_furnace_OBJECTS)
 furnace_LDADD = $(LDADD)
 AM_V_P = $(am__v_P_@AM_V@)
@@ -273,7 +273,7 @@ top_srcdir = @top_srcdir@
 AM_CXXFLAGS = @MYSQL_CXXFLAGS@ -std=c++11 -Wall -Werror
 AM_LDFLAGS = @MYSQL_LDFLAGS@
 AM_LIBS = @MYSQL_LIBS@
-furnace_SOURCES = main.cpp
+furnace_SOURCES = main.cpp db.cpp
 all: config.h
 	$(MAKE) $(AM_MAKEFLAGS) all-am
 
@@ -381,6 +381,7 @@ mostlyclean-compile:
 distclean-compile:
 	-rm -f *.tab.c
 
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/db.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/main.Po@am__quote@
 
 .cpp.o:
