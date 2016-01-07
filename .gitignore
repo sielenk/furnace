@@ -28,7 +28,11 @@
 *.app
 
 # Autotools files
+Makefile
 autom4te.cache
+config.log
+config.status
+config.h
 
 # Backup files
 *~
