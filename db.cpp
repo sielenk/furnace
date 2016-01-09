@@ -11,6 +11,23 @@ namespace {
   char const* const db_user("furnace");
   char const* const db_name("furnace");
   unsigned int const db_port(3306);
+
+
+  class Statement : boost::noncopyable {
+  public:
+    Statement(MYSQL& mysql, std::string const& statement) : m_statmentPtr(mysql_stmt_init(&mysql)) {
+      mysql_stmt_prepare(m_statmentPtr, statement.data(), statement.length());
+    }
+
+    ~Statement() {
+      if (m_statmentPtr) {
+        mysql_stmt_close(m_statmentPtr);
+      }
+    }
+
+  private:
+    MYSQL_STMT* const m_statmentPtr;
+  };
 }
 
 
