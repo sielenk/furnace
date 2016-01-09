@@ -8,10 +8,10 @@
 
 namespace
 {
-  const char* const db_host("192.168.2.51");
-  const char* const db_user("furnace");
-  const char* const db_name("furnace");
-  unsigned int db_port(3306);
+  char const* const db_host("192.168.2.51");
+  char const* const db_user("furnace");
+  char const* const db_name("furnace");
+  unsigned int const db_port(3306);
 }
 
 

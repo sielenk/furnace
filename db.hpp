@@ -12,5 +12,5 @@ public:
 private:
   struct Impl;
 
-  std::unique_ptr<Impl> m_implPtr;
+  std::unique_ptr<Impl> const m_implPtr;
 };
