@@ -6,8 +6,7 @@
 #include <sstream>
 
 
-namespace
-{
+namespace {
   char const* const db_host("192.168.2.51");
   char const* const db_user("furnace");
   char const* const db_name("furnace");
@@ -28,11 +27,11 @@ Db::Db(char* passwd) : m_implPtr(new Impl()) {
   auto& mysql(m_implPtr->mysql);
 
   if (!mysql_real_connect(&mysql, db_host, db_user, passwd, db_name,
-                                  db_port, nullptr, CLIENT_COMPRESS)) {
+                          db_port, nullptr, CLIENT_COMPRESS)) {
     std::ostringstream buffer;
 
     buffer << "failed to connect to database: '"
-       << mysql_error(&mysql) << '\'';
+           << mysql_error(&mysql) << '\'';
 
     throw std::runtime_error(buffer.str());
   }

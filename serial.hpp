@@ -8,9 +8,9 @@ class Serial : boost::noncopyable {
 public:
   Serial();
   ~Serial();
-  
+
 private:
   struct Impl;
-  
+
   std::unique_ptr<Impl> m_implPtr;
 };
