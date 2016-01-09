@@ -2,8 +2,7 @@
 
 #include "serial.hpp"
 
-struct Serial::Impl : boost::noncopyable {
-};
+struct Serial::Impl : boost::noncopyable {};
 
 
 Serial::Serial() : m_implPtr(new Impl()) {
