@@ -15,8 +15,10 @@ namespace {
 
   class Statement : boost::noncopyable {
   public:
-    Statement(MYSQL& mysql, std::string const& statement) : m_statmentPtr(mysql_stmt_init(&mysql)) {
-      mysql_stmt_prepare(m_statmentPtr, statement.data(), statement.length());
+    Statement(MYSQL& mysql, std::string const& statement)
+        : m_statmentPtr(mysql_stmt_init(&mysql)) {
+      mysql_stmt_prepare(m_statmentPtr, statement.data(),
+                         statement.length());
     }
 
     ~Statement() {
