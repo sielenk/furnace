@@ -13,10 +13,38 @@ namespace {
   unsigned int const db_port(3306);
 
 
+  class MySql : boost::noncopyable {
+  public:
+    MySql(char const* passwd) : m_mysql() {
+      mysql_init(&m_mysql);
+      if (!mysql_real_connect(&m_mysql, db_host, db_user, passwd,
+                              db_name, db_port, nullptr,
+                              CLIENT_COMPRESS)) {
+        std::ostringstream buffer;
+
+        buffer << "failed to connect to database: '"
+               << mysql_error(&m_mysql) << '\'';
+
+        throw std::runtime_error(buffer.str());
+      }
+    }
+
+    ~MySql() {
+    }
+
+    operator MYSQL*() {
+      return &m_mysql;
+    }
+
+  private:
+    MYSQL m_mysql;
+  };
+
+
   class Statement : boost::noncopyable {
   public:
-    Statement(MYSQL& mysql, std::string const& statement)
-        : m_statmentPtr(mysql_stmt_init(&mysql)) {
+    Statement(MySql& mysql, std::string const& statement)
+        : m_statmentPtr(mysql_stmt_init(mysql)) {
       mysql_stmt_prepare(m_statmentPtr, statement.data(),
                          statement.length());
     }
@@ -34,26 +62,17 @@ namespace {
 
 
 struct Db::Impl : boost::noncopyable {
-  MYSQL mysql;
+  MySql mysql;
+  Statement insert;
 
-  Impl() : mysql() {
-    mysql_init(&mysql);
+  Impl(char const* passwd)
+      : mysql(passwd)
+      , insert(mysql, "insert into foo(bar, baz) values (?, ?)") {
   }
 };
 
 
-Db::Db(char* passwd) : m_implPtr(new Impl()) {
-  auto& mysql(m_implPtr->mysql);
-
-  if (!mysql_real_connect(&mysql, db_host, db_user, passwd, db_name,
-                          db_port, nullptr, CLIENT_COMPRESS)) {
-    std::ostringstream buffer;
-
-    buffer << "failed to connect to database: '"
-           << mysql_error(&mysql) << '\'';
-
-    throw std::runtime_error(buffer.str());
-  }
+Db::Db(char* passwd) : m_implPtr(new Impl(passwd)) {
 }
 
 Db::~Db() {
