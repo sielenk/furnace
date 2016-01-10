@@ -9,6 +9,8 @@ public:
   Db(char* passwd);
   ~Db();
 
+  void addSerialLine(std::string const& line);
+
 private:
   struct Impl;
 
