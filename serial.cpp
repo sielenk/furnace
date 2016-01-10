@@ -57,14 +57,14 @@ struct Serial::Impl : boost::noncopyable {
     fcntl(ttyFd, F_SETOWN, getpid());
     fcntl(ttyFd, F_SETFL, FASYNC);
 
-    struct termios newTIo = { };
+    struct termios newTIo = {};
 
     newTIo.c_cflag = B19200 | CS8 | CLOCAL | CREAD;
     newTIo.c_iflag = IGNPAR | ICRNL;
     newTIo.c_oflag = 0;
     newTIo.c_lflag = ICANON;
-    newTIo.c_cc[VMIN]=1;
-    newTIo.c_cc[VTIME]=0;
+    newTIo.c_cc[VMIN] = 1;
+    newTIo.c_cc[VTIME] = 0;
     tcflush(ttyFd, TCIFLUSH);
     tcsetattr(ttyFd, TCSANOW, &newTIo);
   }
