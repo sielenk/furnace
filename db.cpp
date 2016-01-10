@@ -47,7 +47,7 @@ namespace {
   public:
     Statement(MySql& mysql, std::string const& statement)
         : m_statementPtr(mysql_stmt_init(mysql)) {
-      if (!mysql_stmt_prepare(m_statementPtr, statement.data(),
+      if (mysql_stmt_prepare(m_statementPtr, statement.data(),
                               statement.length())) {
         std::ostringstream buffer;
 
