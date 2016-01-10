@@ -4,7 +4,7 @@
 
 #include <mariadb/mysql.h>
 #include <sstream>
-
+#include <iostream>
 
 namespace {
   char const* const db_host("192.168.2.51");
@@ -46,19 +46,30 @@ namespace {
   class Statement : boost::noncopyable {
   public:
     Statement(MySql& mysql, std::string const& statement)
-        : m_statmentPtr(mysql_stmt_init(mysql)) {
-      mysql_stmt_prepare(m_statmentPtr, statement.data(),
-                         statement.length());
+        : m_statementPtr(mysql_stmt_init(mysql)) {
+      if (!mysql_stmt_prepare(m_statementPtr, statement.data(),
+                              statement.length())) {
+        std::ostringstream buffer;
+
+        buffer << "failed to prepare statement '" << statement
+               << "': '" << mysql_stmt_error(m_statementPtr) << '\'';
+
+        throw std::runtime_error(buffer.str());
+      }
+
+      std::cout << statement << std::endl
+                << mysql_stmt_param_count(m_statementPtr)
+                << std::endl;
     }
 
     ~Statement() {
-      if (m_statmentPtr) {
-        mysql_stmt_close(m_statmentPtr);
+      if (m_statementPtr) {
+        mysql_stmt_close(m_statementPtr);
       }
     }
 
   private:
-    MYSQL_STMT* const m_statmentPtr;
+    MYSQL_STMT* const m_statementPtr;
   };
 }
 
@@ -69,7 +80,7 @@ struct Db::Impl : boost::noncopyable {
 
   Impl(char const* passwd)
       : mysql(passwd)
-      , insert(mysql, "insert into foo(bar, baz) values (?, ?)") {
+      , insert(mysql, "INSERT INTO serial_log(line) VALUES(?)") {
   }
 };
 
