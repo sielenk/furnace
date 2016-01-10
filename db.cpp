@@ -15,29 +15,31 @@ namespace {
 
   class MySql : boost::noncopyable {
   public:
-    MySql(char const* passwd) : m_mysql() {
-      mysql_init(&m_mysql);
-      if (!mysql_real_connect(&m_mysql, db_host, db_user, passwd,
+    MySql(char const* passwd) : m_mysqlPtr(mysql_init(nullptr)) {
+      if (!mysql_real_connect(m_mysqlPtr, db_host, db_user, passwd,
                               db_name, db_port, nullptr,
                               CLIENT_COMPRESS)) {
         std::ostringstream buffer;
 
         buffer << "failed to connect to database: '"
-               << mysql_error(&m_mysql) << '\'';
+               << mysql_error(m_mysqlPtr) << '\'';
+
+        mysql_close(m_mysqlPtr);
 
         throw std::runtime_error(buffer.str());
       }
     }
 
     ~MySql() {
+      mysql_close(m_mysqlPtr);
     }
 
     operator MYSQL*() {
-      return &m_mysql;
+      return m_mysqlPtr;
     }
 
   private:
-    MYSQL m_mysql;
+    MYSQL* const m_mysqlPtr;
   };
 
 
