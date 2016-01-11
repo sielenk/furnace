@@ -7,6 +7,7 @@
 #include <fcntl.h>
 #include <termios.h>
 #include <signal.h>
+#include <unistd.h>
 
 #include <boost/signals2.hpp>
 
@@ -14,13 +15,13 @@
 namespace {
   class SignalHandler {
   public:
-    static SignalHandler instance;
+    // static SignalHandler instance;
 
     boost::signals2::signal<void()> ioSignal;
 
   private:
     static void handler(int status) {
-      instance.ioSignal();
+      //      instance.ioSignal();
     }
 
 
@@ -46,7 +47,8 @@ struct Serial::Impl : boost::noncopyable {
   struct termios oldTIo;
 
   Impl()
-      : ttyFd(open("/dev/ttyAMA0", O_RDONLY | O_NOCTTY | O_NONBLOCK))
+      : ttyFd(open("/dev/ttyAMA0",
+                   O_RDONLY | O_NOCTTY /*| O_NONBLOCK*/))
       , oldTIo() {
     if (ttyFd < 0) {
       throw std::runtime_error("");
@@ -54,15 +56,15 @@ struct Serial::Impl : boost::noncopyable {
 
     tcgetattr(ttyFd, &oldTIo);
 
-    fcntl(ttyFd, F_SETOWN, getpid());
-    fcntl(ttyFd, F_SETFL, FASYNC);
+    //    fcntl(ttyFd, F_SETOWN, getpid());
+    //    fcntl(ttyFd, F_SETFL, FASYNC);
 
     struct termios newTIo = {};
 
     newTIo.c_cflag = CS8 | CLOCAL | CREAD;
     newTIo.c_iflag = IGNPAR | IGNCR;
     newTIo.c_lflag = ICANON;
-    newTIo.c_cc[VMIN] = 0;
+    newTIo.c_cc[VMIN] = 1;
     newTIo.c_cc[VTIME] = 0;
     cfsetispeed(&newTIo, B19200);
 
@@ -81,4 +83,16 @@ Serial::Serial() : m_implPtr(new Impl()) {
 }
 
 Serial::~Serial() {
+}
+
+void Serial::run() {
+  char buffer[512];
+
+  while (true) {
+    int const readCount(read(m_implPtr->ttyFd, buffer, 512));
+
+    if (readCount > 0) {
+      std::cout << std::string(buffer, readCount - 1) << std::endl;
+    }
+  }
 }

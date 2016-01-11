@@ -10,5 +10,7 @@ int main(int argc, char** argv) {
 
   db.addSerialLine("Foo!");
 
+  serial.run();
+
   return 0;
 }

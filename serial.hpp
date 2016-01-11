@@ -9,6 +9,8 @@ public:
   Serial();
   ~Serial();
 
+  void run();
+
 private:
   struct Impl;
 
