@@ -11,17 +11,19 @@
 
 #include <boost/signals2.hpp>
 
+namespace sig = boost::signals2;
+
 
 namespace {
   class SignalHandler {
   public:
-    // static SignalHandler instance;
+    static SignalHandler instance;
 
-    boost::signals2::signal<void()> ioSignal;
+    sig::signal<void()> ioSignal;
 
   private:
     static void handler(int status) {
-      //      instance.ioSignal();
+      instance.ioSignal();
     }
 
 
@@ -42,22 +44,27 @@ namespace {
   };
 }
 
+SignalHandler SignalHandler::instance;
+
+
 struct Serial::Impl : boost::noncopyable {
   int ttyFd;
   struct termios oldTIo;
+  sig::scoped_connection sigConnection;
 
   Impl()
-      : ttyFd(open("/dev/ttyAMA0",
-                   O_RDONLY | O_NOCTTY /*| O_NONBLOCK*/))
-      , oldTIo() {
+      : ttyFd(open("/dev/ttyAMA0", O_RDONLY | O_NOCTTY | O_NONBLOCK))
+      , oldTIo()
+      , sigConnection(SignalHandler::instance.ioSignal.connect(
+            [this]() { handleIo(); })) {
     if (ttyFd < 0) {
       throw std::runtime_error("");
     }
 
     tcgetattr(ttyFd, &oldTIo);
 
-    //    fcntl(ttyFd, F_SETOWN, getpid());
-    //    fcntl(ttyFd, F_SETFL, FASYNC);
+    fcntl(ttyFd, F_SETOWN, getpid());
+    fcntl(ttyFd, F_SETFL, FASYNC);
 
     struct termios newTIo = {};
 
@@ -76,6 +83,13 @@ struct Serial::Impl : boost::noncopyable {
     tcsetattr(ttyFd, TCSANOW, &oldTIo);
     close(ttyFd);
   }
+
+  void handleIo() {
+    char buffer[512];
+    int const readCount(read(ttyFd, buffer, 512));
+
+    std::cout << std::string(buffer, readCount - 1) << std::endl;
+  }
 };
 
 
@@ -83,16 +97,4 @@ Serial::Serial() : m_implPtr(new Impl()) {
 }
 
 Serial::~Serial() {
-}
-
-void Serial::run() {
-  char buffer[512];
-
-  while (true) {
-    int const readCount(read(m_implPtr->ttyFd, buffer, 512));
-
-    if (readCount > 0) {
-      std::cout << std::string(buffer, readCount - 1) << std::endl;
-    }
-  }
 }
