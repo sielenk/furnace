@@ -13,7 +13,6 @@ int main(int argc, char** argv) {
   db.addSerialLine("Foo!");
 
 
-
   char c(0);
   while (c != 'q') {
     std::cin >> c;

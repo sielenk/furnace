@@ -85,10 +85,28 @@ struct Serial::Impl : boost::noncopyable {
   }
 
   void handleIo() {
-    char buffer[512];
-    int const readCount(read(ttyFd, buffer, 512));
+    std::string line;
+    char buffer[256];
 
-    std::cout << std::string(buffer, readCount - 1) << std::endl;
+    for (;;) {
+      int const readCount(
+          read(ttyFd, buffer, sizeof(buffer) / sizeof(buffer[0])));
+
+      if (readCount <= 0) {
+        break;
+      }
+
+      auto const isLast(buffer[readCount - 1] == '\n');
+      std::string const fragment(buffer, readCount - isLast);
+
+      line += fragment;
+
+      if (isLast) {
+        break;
+      }
+    }
+
+    std::cout << line << std::endl;
   }
 };
 
