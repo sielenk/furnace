@@ -9,8 +9,6 @@
 #include <signal.h>
 #include <unistd.h>
 
-#include <boost/signals2.hpp>
-
 namespace sig = boost::signals2;
 
 
@@ -51,12 +49,14 @@ struct Serial::Impl : boost::noncopyable {
   int ttyFd;
   struct termios oldTIo;
   sig::scoped_connection sigConnection;
+  LineReceived& lineReceived;
 
-  Impl()
+  Impl(LineReceived& lineReceived)
       : ttyFd(open("/dev/ttyAMA0", O_RDONLY | O_NOCTTY | O_NONBLOCK))
       , oldTIo()
       , sigConnection(SignalHandler::instance.ioSignal.connect(
-            [this]() { handleIo(); })) {
+            [this]() { handleIo(); }))
+      , lineReceived(lineReceived) {
     if (ttyFd < 0) {
       throw std::runtime_error("");
     }
@@ -106,12 +106,12 @@ struct Serial::Impl : boost::noncopyable {
       }
     }
 
-    std::cout << line << std::endl;
+    lineReceived(line);
   }
 };
 
 
-Serial::Serial() : m_implPtr(new Impl()) {
+Serial::Serial() : lineReceived(), m_implPtr(new Impl(lineReceived)) {
 }
 
 Serial::~Serial() {
