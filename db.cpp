@@ -147,6 +147,6 @@ Db::~Db() {
 void Db::addSerialLine(std::string const& line) {
   auto& insert(m_implPtr->insert);
 
-  insert.set(0, "Foo!");
+  insert.set(0, line);
   insert.execute();
 }
