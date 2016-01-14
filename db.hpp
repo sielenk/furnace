@@ -2,11 +2,12 @@
 
 #include <boost/noncopyable.hpp>
 #include <memory>
+#include <string>
 
 
 class Db : boost::noncopyable {
 public:
-  Db(char* passwd);
+  Db(std::string const& passwd);
   ~Db();
 
   void addSerialLine(std::string const& line);

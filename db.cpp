@@ -131,14 +131,14 @@ struct Db::Impl : boost::noncopyable {
   MySql mysql;
   Statement insert;
 
-  Impl(char const* passwd)
-      : mysql(passwd)
+  Impl(std::string const& passwd)
+      : mysql(passwd.c_str())
       , insert(mysql, "INSERT INTO serial_log(line) VALUES(?)") {
   }
 };
 
 
-Db::Db(char* passwd) : m_implPtr(new Impl(passwd)) {
+Db::Db(std::string const& passwd) : m_implPtr(new Impl(passwd)) {
 }
 
 Db::~Db() {
