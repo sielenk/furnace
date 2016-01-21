@@ -5,11 +5,10 @@
 #include <semaphore.h>
 
 #include <boost/optional.hpp>
+#include <boost/lockfree/queue.hpp>
 
 #include <iostream>
 #include <functional>
-#include <queue>
-#include <map>
 
 
 namespace {
@@ -41,13 +40,18 @@ namespace {
       Handler handler;
     };
 
+    struct PendingCall {
+      Handler const* handlerPtr;
+      int fd;
+    };
+
     static MainLoop* m_instancePtr;
 
     static void globalSignalAction(int signalId, siginfo_t*, void*);
 
     boost::optional<SigHandler> m_sigHandlers[_NSIG];
     sem_t m_semaphore;
-    std::queue<std::pair<Handler, int>> m_pendingHandlers;
+    boost::lockfree::queue<PendingCall> m_pendingCalls;
 
     void signalAction(siginfo_t const& signalInfo);
   };
@@ -70,7 +74,7 @@ void MainLoop::globalSignalAction(int, siginfo_t* signalInfoPtr,
 
 
 MainLoop::MainLoop()
-    : m_sigHandlers(), m_semaphore(), m_pendingHandlers() {
+    : m_sigHandlers(), m_semaphore(), m_pendingCalls(32) {
   if (m_instancePtr) {
     throw std::runtime_error("MainLoop already instantiated.");
   }
@@ -112,6 +116,10 @@ MainLoop::Handler MainLoop::getHandler(int signalId) {
 void MainLoop::setHandler(int signalId, Handler const& newHandler) {
   auto& sigHandlerOpt(m_sigHandlers[signalId]);
 
+  if (!m_pendingCalls.empty()) {
+    throw std::runtime_error("queue not empty");
+  }
+
   if (newHandler) {
     if (sigHandlerOpt) {
       sigHandlerOpt->handler = newHandler;
@@ -135,9 +143,12 @@ int MainLoop::run() {
 
   while (!control.m_resultOpt) {
     if (sem_wait(&m_semaphore) == 0) {
-      auto const handler(m_pendingHandlers.front());
-      m_pendingHandlers.pop();
-      handler.first(control, handler.second);
+      m_pendingCalls.consume_one(
+          [&control](PendingCall const& pendingCall) {
+            auto& handler(*pendingCall.handlerPtr);
+
+            handler(control, pendingCall.fd);
+          });
     } else {
       assert(errno == EINTR);
     }
@@ -150,8 +161,8 @@ int MainLoop::run() {
 void MainLoop::signalAction(siginfo_t const& signalInfo) {
   if (auto const& sigHandlerOpt =
           m_sigHandlers[signalInfo.si_signo]) {
-    m_pendingHandlers.push(
-        std::make_pair(sigHandlerOpt->handler, signalInfo.si_fd));
+    m_pendingCalls.push(
+        PendingCall{&sigHandlerOpt->handler, signalInfo.si_fd});
     sem_post(&m_semaphore);
   }
 }
