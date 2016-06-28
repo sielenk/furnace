@@ -3,6 +3,7 @@
 #include "db.hpp"
 #include "serial.hpp"
 
+#include <memory>
 #include <iostream>
 
 #include <unistd.h>
@@ -13,12 +14,23 @@ int main(int argc, char** argv) {
 
   getline(std::cin, passwd);
 
-  Db db(passwd);
+  std::unique_ptr<Db> dbPtr;
   Serial serial;
   boost::signals2::scoped_connection connection(
-      serial.lineReceived.connect([&db](std::string const& line) {
-        db.addSerialLine(line);
-      }));
+      serial.lineReceived.connect(
+          [&dbPtr, &passwd](std::string const& line) {
+            try {
+              if (!dbPtr) {
+                dbPtr.reset(new Db(passwd));
+              }
+
+              auto& db(*dbPtr);
+
+              db.addSerialLine(line);
+            } catch (...) {
+              dbPtr.reset();
+            }
+          }));
 
   for (;;) {
     sleep(1);
