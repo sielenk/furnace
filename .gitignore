@@ -48,3 +48,5 @@ aclocal.m4
 translate
 install-sh
 configure
+missing
+depcomp
