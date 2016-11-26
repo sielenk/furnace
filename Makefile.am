@@ -1,6 +1,8 @@
-AM_CXXFLAGS = @MYSQL_CXXFLAGS@ -std=c++11 -Wall -Werror
-AM_LDFLAGS = @MYSQL_LDFLAGS@
-AM_LIBS = @MYSQL_LIBS@
+AM_CXXFLAGS = @MYSQL_CXXFLAGS@ @BOOST_CPPFLAGS@ -std=c++11 -Wall -Werror
+AM_LDFLAGS = @MYSQL_LDFLAGS@ @BOOST_LDFLAGS@
 
-bin_PROGRAMS = furnace
+LDADD = @MYSQL_LIBS@
+
+bin_PROGRAMS = furnace translate
 furnace_SOURCES = main.cpp db.cpp serial.cpp
+translate_SOURCES = translate.cpp db.cpp

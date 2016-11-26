@@ -6,7 +6,7 @@ AM_INIT_AUTOMAKE()
 AC_CONFIG_SRCDIR([main.cpp])
 AC_CONFIG_HEADERS([config.h])
 AC_CONFIG_FILES([Makefile])
-AC_CONFIG_MACRO_DIR([mysql-m4])
+AC_CONFIG_MACRO_DIRS([mysql-m4 boost-m4])
 
 WITH_MYSQL()
 MYSQL_USE_CLIENT_API()
@@ -16,6 +16,7 @@ MYSQL_SUBST()
 AC_PROG_CXX([g++])
 
 # Checks for libraries.
+AX_BOOST_BASE(1.55)
 
 # Checks for header files.
 

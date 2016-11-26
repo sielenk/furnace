@@ -5,6 +5,7 @@
 #include <mysql.h>
 
 #include <boost/any.hpp>
+#include <boost/range/iterator_range_core.hpp>
 
 #include <sstream>
 #include <vector>
@@ -38,12 +39,40 @@ namespace {
       mysql_close(m_mysqlPtr);
     }
 
-    operator MYSQL*() {
+    operator MYSQL*() const {
       return m_mysqlPtr;
     }
 
   private:
     MYSQL* const m_mysqlPtr;
+  };
+
+
+  class Statement;
+
+  class ResultSet : boost::noncopyable {
+  public:
+    ResultSet(ResultSet&& other)
+        : m_statement(other.m_statement), m_resultMetaData(nullptr) {
+      std::swap(m_resultMetaData, other.m_resultMetaData);
+    }
+
+    ResultSet(Statement const& statement)
+        : m_statement(statement), m_resultMetaData(nullptr) {
+    }
+
+    ~ResultSet() {
+      if (m_resultMetaData) {
+        mysql_free_result(m_resultMetaData);
+      }
+    }
+
+
+  private:
+    Statement const& m_statement;
+    MYSQL_RES* m_resultMetaData;
+
+    MYSQL_RES* getResultMetaData();
   };
 
 
@@ -87,7 +116,7 @@ namespace {
       mysqlBinding.length = &buffer.second;
     }
 
-    void execute() {
+    ResultSet execute() {
       if (mysql_stmt_bind_param(m_statementPtr, m_bindings)) {
         std::ostringstream buffer;
 
@@ -105,6 +134,8 @@ namespace {
 
         throw std::runtime_error(buffer.str());
       }
+
+      return ResultSet(*this);
     }
 
     ~Statement() {
@@ -117,23 +148,44 @@ namespace {
       }
     }
 
-  private:
-    typedef std::pair<MYSQL_BIND, boost::any> Binding;
+    operator MYSQL_STMT*() const {
+      return m_statementPtr;
+    }
 
+  private:
     MYSQL_STMT* const m_statementPtr;
     MYSQL_BIND* m_bindings;
     std::vector<boost::any> m_buffers;
   };
+
+  MYSQL_RES* ResultSet::getResultMetaData() {
+    if (!m_resultMetaData) {
+      m_resultMetaData = mysql_stmt_result_metadata(m_statement);
+
+      auto const fieldCount(mysql_num_fields(m_resultMetaData));
+      auto const fields(mysql_fetch_fields(m_resultMetaData));
+
+      for (auto const& field :
+           boost::make_iterator_range(fields, fields + fieldCount)) {
+        (void)field.length;
+      }
+    }
+
+
+    return m_resultMetaData;
+  }
 }
 
 
 struct Db::Impl : boost::noncopyable {
   MySql mysql;
   Statement insert;
+  Statement query;
 
   Impl(std::string const& passwd)
       : mysql(passwd.c_str())
-      , insert(mysql, "INSERT INTO serial_log(line) VALUES(?)") {
+      , insert(mysql, "INSERT INTO serial_log(line) VALUES(?)")
+      , query(mysql, "SELECT id, time, line FROM serial_log") {
   }
 };
 
@@ -149,4 +201,11 @@ void Db::addSerialLine(std::string const& line) {
 
   insert.set(0, line);
   insert.execute();
+}
+
+void Db::getLines(
+    std::function<void(int, int, std::string const&)> const& callback) {
+  auto& query(m_implPtr->query);
+  auto const result(query.execute());
+
 }
