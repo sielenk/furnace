@@ -2,7 +2,7 @@
 
 #include "db.hpp"
 
-#include <mariadb/mysql.h>
+#include <mysql.h>
 
 #include <boost/any.hpp>
 
