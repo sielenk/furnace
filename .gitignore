@@ -24,6 +24,7 @@
 
 # Executables
 furnace
+translate
 *.exe
 *.out
 *.app
@@ -31,22 +32,19 @@ furnace
 # Autotools files
 .deps
 Makefile
+Makefile.in
+aclocal.m4
 autom4te.cache
-config.log
-config.status
-config.h
+config.*
+configure
+depcomp
+install-sh
+libtool
+ltmain.sh
 compile
-stamp-h1
+missing
+stamp-h?
+m4
 
 # Backup files
 *~
-
-Makefile.in
-config.guess
-config.sub
-aclocal.m4
-translate
-install-sh
-configure
-missing
-depcomp
