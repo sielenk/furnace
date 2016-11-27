@@ -12,8 +12,8 @@ public:
   ~Db();
 
   void addSerialLine(std::string const& line);
-  void getLines(
-      std::function<void(int, int, std::string const&)> const& callback);
+  void getLines(std::function<
+                void(int, int, std::string const&)> const& callback);
 
 private:
   struct Impl;

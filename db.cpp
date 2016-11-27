@@ -6,6 +6,7 @@
 
 #include <boost/any.hpp>
 #include <boost/range/iterator_range_core.hpp>
+#include <boost/foreach.hpp>
 
 #include <sstream>
 #include <vector>
@@ -109,11 +110,11 @@ namespace {
 
       auto& buffer(boost::any_cast<Buffer&>(anyBuffer));
 
-      mysqlBinding.buffer_type = MYSQL_TYPE_STRING;
-      mysqlBinding.buffer = const_cast<char*>(buffer.first.data());
+      mysqlBinding.buffer_type   = MYSQL_TYPE_STRING;
+      mysqlBinding.buffer        = const_cast<char*>(buffer.first.data());
       mysqlBinding.buffer_length = buffer.second;
-      mysqlBinding.is_null = nullptr;
-      mysqlBinding.length = &buffer.second;
+      mysqlBinding.is_null       = nullptr;
+      mysqlBinding.length        = &buffer.second;
     }
 
     ResultSet execute() {
@@ -204,8 +205,8 @@ void Db::addSerialLine(std::string const& line) {
 }
 
 void Db::getLines(
-    std::function<void(int, int, std::string const&)> const& callback) {
+    std::function<void(int, int, std::string const&)> const&
+        callback) {
   auto& query(m_implPtr->query);
   auto const result(query.execute());
-
 }

@@ -127,7 +127,7 @@ void MainLoop::setHandler(int signalId, Handler const& newHandler) {
       sigHandlerOpt = SigHandler{{}, newHandler};
 
       struct sigaction action = {};
-      action.sa_sigaction = globalSignalAction;
+      action.sa_sigaction     = globalSignalAction;
       action.sa_flags = SA_SIGINFO;
       sigaction(signalId, &action, &sigHandlerOpt->oldAction);
     }
@@ -176,9 +176,9 @@ int main(int argc, char* argv[], char* envp[]) {
 
     loop.setHandler(SIGUSR1,
                     [&doRestart](MainLoop::Control& control, int) {
-      doRestart = true;
-      control.exit(0);
-    });
+                      doRestart = true;
+                      control.exit(0);
+                    });
 
     loop.run();
   }

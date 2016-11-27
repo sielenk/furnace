@@ -68,10 +68,10 @@ struct Serial::Impl : boost::noncopyable {
 
     struct termios newTIo = {};
 
-    newTIo.c_cflag = CS8 | CLOCAL | CREAD;
-    newTIo.c_iflag = IGNPAR | IGNCR;
-    newTIo.c_lflag = ICANON;
-    newTIo.c_cc[VMIN] = 1;
+    newTIo.c_cflag     = CS8 | CLOCAL | CREAD;
+    newTIo.c_iflag     = IGNPAR | IGNCR;
+    newTIo.c_lflag     = ICANON;
+    newTIo.c_cc[VMIN]  = 1;
     newTIo.c_cc[VTIME] = 0;
     cfsetispeed(&newTIo, B19200);
 
