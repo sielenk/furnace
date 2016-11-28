@@ -6,6 +6,7 @@
 
 #include <boost/any.hpp>
 #include <boost/range/iterator_range_core.hpp>
+#include <boost/iterator/iterator_facade.hpp>
 #include <boost/foreach.hpp>
 
 #include <sstream>
@@ -51,8 +52,28 @@ namespace {
 
   class Statement;
 
+  class Result {
+  public:
+    template <class T>
+    T get(std::string const& columnName) const;
+  };
+
   class ResultSet : boost::noncopyable {
   public:
+    struct const_iterator
+        : boost::iterator_facade<const_iterator, Result const,
+                                 boost::single_pass_traversal_tag> {
+    private:
+      friend boost::iterator_core_access;
+
+      reference dereference() const;
+      void increment() {
+      }
+      bool equal(const_iterator const& other) const {
+        return true;
+      }
+    };
+
     ResultSet(ResultSet&& other)
         : m_statement(other.m_statement), m_resultMetaData(nullptr) {
       std::swap(m_resultMetaData, other.m_resultMetaData);
@@ -66,6 +87,14 @@ namespace {
       if (m_resultMetaData) {
         mysql_free_result(m_resultMetaData);
       }
+    }
+
+    const_iterator begin() const {
+      return const_iterator();
+    }
+
+    const_iterator end() const {
+      return const_iterator();
     }
 
 
@@ -208,5 +237,10 @@ void Db::getLines(
     std::function<void(int, int, std::string const&)> const&
         callback) {
   auto& query(m_implPtr->query);
-  auto const result(query.execute());
+  auto const resultSet(query.execute());
+
+  BOOST_FOREACH (auto const& row, resultSet) {
+    callback(row.get<int>("id"), row.get<int>("time"),
+             row.get<std::string>("line"));
+  }
 }
