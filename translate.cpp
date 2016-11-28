@@ -1,3 +1,5 @@
+// (C) 2016 Marvin Sielenkemper
+
 #include "db.hpp"
 
 #include <fstream>
@@ -47,10 +49,9 @@ struct Sample {
 
 
 int main(int argc, char const* argv[]) {
-  std::ifstream file("lines.txt");
-  std::string line;
+  Db db;
 
-  while (getline(file, line)) {
+  db.getLines([](int id, int time, std::string const& line) {
     try {
       Sample sample(line);
 
@@ -58,7 +59,7 @@ int main(int argc, char const* argv[]) {
                 << sample.second << std::endl;
     } catch (std::runtime_error const& e) {
     }
-  }
+  });
 
   return 0;
 }

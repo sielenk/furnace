@@ -8,6 +8,7 @@
 
 class Db : boost::noncopyable {
 public:
+  Db();
   Db(std::string const& passwd);
   ~Db();
 

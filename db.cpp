@@ -23,9 +23,9 @@ namespace {
   class MySql : boost::noncopyable {
   public:
     MySql(char const* passwd) : m_mysqlPtr(mysql_init(nullptr)) {
-      if (!mysql_real_connect(m_mysqlPtr, db_host, db_user, passwd,
-                              db_name, db_port, nullptr,
-                              CLIENT_COMPRESS)) {
+      if (!mysql_real_connect(
+              m_mysqlPtr, passwd ? db_host : "localhost", db_user,
+              passwd, db_name, db_port, nullptr, CLIENT_COMPRESS)) {
         std::ostringstream buffer;
 
         buffer << "failed to connect to database: '"
@@ -212,15 +212,19 @@ struct Db::Impl : boost::noncopyable {
   Statement insert;
   Statement query;
 
-  Impl(std::string const& passwd)
-      : mysql(passwd.c_str())
+  Impl(char const* password)
+      : mysql(password)
       , insert(mysql, "INSERT INTO serial_log(line) VALUES(?)")
       , query(mysql, "SELECT id, time, line FROM serial_log") {
   }
 };
 
 
-Db::Db(std::string const& passwd) : m_implPtr(new Impl(passwd)) {
+Db::Db() : m_implPtr(new Impl(nullptr)) {
+}
+
+Db::Db(std::string const& password)
+    : m_implPtr(new Impl(password.c_str())) {
 }
 
 Db::~Db() {
