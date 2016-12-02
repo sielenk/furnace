@@ -3,9 +3,9 @@
 AC_PREREQ([2.69])
 AC_INIT([furnace], [0.1], [sielenk@gmx.de])
 AM_INIT_AUTOMAKE()
-AC_CONFIG_SRCDIR([main.cpp])
+AC_CONFIG_SRCDIR([src])
 AC_CONFIG_HEADERS([config.h])
-AC_CONFIG_FILES([Makefile])
+AC_CONFIG_FILES([Makefile src/Makefile])
 AC_CONFIG_MACRO_DIRS([m4 mysql-m4 boost-m4])
 
 WITH_MYSQL()
