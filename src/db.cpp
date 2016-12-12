@@ -55,7 +55,9 @@ namespace {
   class Result {
   public:
     template <class T>
-    T get(std::string const& columnName) const;
+    T get(std::string const& columnName) const {
+      return T();
+    }
   };
 
   class ResultSet : boost::noncopyable {
@@ -66,11 +68,16 @@ namespace {
     private:
       friend boost::iterator_core_access;
 
-      reference dereference() const;
-      void increment() {
+      reference dereference() const {
+        throw std::runtime_error("dereference() not implemented");
       }
+
+      void increment() {
+        throw std::runtime_error("increment() not implemented");
+      }
+
       bool equal(const_iterator const& other) const {
-        return true;
+        throw std::runtime_error("equal(...) not implemented");
       }
     };
 
@@ -129,6 +136,16 @@ namespace {
       }
     }
 
+    ~Statement() {
+      if (m_statementPtr) {
+        mysql_stmt_close(m_statementPtr);
+      }
+
+      if (m_bindings) {
+        delete[] m_bindings;
+      }
+    }
+
     void set(int index, std::string const& param) {
       typedef std::pair<std::string, unsigned long> Buffer;
 
@@ -168,16 +185,6 @@ namespace {
       return ResultSet(*this);
     }
 
-    ~Statement() {
-      if (m_statementPtr) {
-        mysql_stmt_close(m_statementPtr);
-      }
-
-      if (m_bindings) {
-        delete[] m_bindings;
-      }
-    }
-
     operator MYSQL_STMT*() const {
       return m_statementPtr;
     }
@@ -200,7 +207,6 @@ namespace {
         (void)field.length;
       }
     }
-
 
     return m_resultMetaData;
   }
