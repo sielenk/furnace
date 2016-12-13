@@ -6,7 +6,5 @@ BUILDDIR=$BASEDIR/build
 
 while true
 do
-	echo "Waiting for a change ..."
-	find $SRCDIR | entr -cdp make -C $BUILDDIR
-	echo
+	find $SRCDIR | entr -cd make -C $BUILDDIR
 done
