@@ -3,6 +3,8 @@
 #include "db.hpp"
 
 #include "MySql.hpp"
+#include "Statement.hpp"
+#include "ResultSet.hpp"
 
 #include <mysql.h>
 
@@ -15,174 +17,10 @@
 #include <vector>
 
 
-namespace {
-  class Statement;
-
-  class Result {
-  public:
-    template <class T>
-    T get(std::string const& columnName) const {
-      return T();
-    }
-  };
-
-  class ResultSet : boost::noncopyable {
-  public:
-    struct const_iterator
-        : boost::iterator_facade<const_iterator, Result const,
-                                 boost::single_pass_traversal_tag> {
-    private:
-      friend boost::iterator_core_access;
-
-      reference dereference() const {
-        throw std::runtime_error("dereference() not implemented");
-      }
-
-      void increment() {
-        throw std::runtime_error("increment() not implemented");
-      }
-
-      bool equal(const_iterator const& other) const {
-        throw std::runtime_error("equal(...) not implemented");
-      }
-    };
-
-    ResultSet(ResultSet&& other)
-        : m_statement(other.m_statement), m_resultMetaData(nullptr) {
-      std::swap(m_resultMetaData, other.m_resultMetaData);
-    }
-
-    ResultSet(Statement const& statement)
-        : m_statement(statement), m_resultMetaData(nullptr) {
-    }
-
-    ~ResultSet() {
-      if (m_resultMetaData) {
-        mysql_free_result(m_resultMetaData);
-      }
-    }
-
-    const_iterator begin() const {
-      return const_iterator();
-    }
-
-    const_iterator end() const {
-      return const_iterator();
-    }
-
-
-  private:
-    Statement const& m_statement;
-    MYSQL_RES* m_resultMetaData;
-
-    MYSQL_RES* getResultMetaData();
-  };
-
-
-  class Statement : boost::noncopyable {
-  public:
-    Statement(db::MySql& mysql, std::string const& statement)
-        : m_statementPtr(mysql_stmt_init(mysql))
-        , m_bindings(nullptr)
-        , m_buffers() {
-      if (mysql_stmt_prepare(m_statementPtr, statement.data(),
-                             statement.length())) {
-        std::ostringstream buffer;
-
-        buffer << "failed to prepare statement '" << statement
-               << "': '" << mysql_stmt_error(m_statementPtr) << '\'';
-
-        throw std::runtime_error(buffer.str());
-      }
-
-      if (auto const paramCount =
-              mysql_stmt_param_count(m_statementPtr)) {
-        m_bindings = new MYSQL_BIND[paramCount];
-        m_buffers.resize(paramCount);
-      }
-    }
-
-    ~Statement() {
-      if (m_statementPtr) {
-        mysql_stmt_close(m_statementPtr);
-      }
-
-      if (m_bindings) {
-        delete[] m_bindings;
-      }
-    }
-
-    void set(int index, std::string const& param) {
-      typedef std::pair<std::string, unsigned long> Buffer;
-
-      auto& anyBuffer(m_buffers.at(index));
-      auto& mysqlBinding(m_bindings[index]);
-
-      anyBuffer = Buffer(param, param.length());
-
-      auto& buffer(boost::any_cast<Buffer&>(anyBuffer));
-
-      mysqlBinding.buffer_type   = MYSQL_TYPE_STRING;
-      mysqlBinding.buffer        = const_cast<char*>(buffer.first.data());
-      mysqlBinding.buffer_length = buffer.second;
-      mysqlBinding.is_null       = nullptr;
-      mysqlBinding.length        = &buffer.second;
-    }
-
-    ResultSet execute() {
-      if (mysql_stmt_bind_param(m_statementPtr, m_bindings)) {
-        std::ostringstream buffer;
-
-        buffer << "failed to bind parameters: '"
-               << mysql_stmt_error(m_statementPtr) << '\'';
-
-        throw std::runtime_error(buffer.str());
-      }
-
-      if (mysql_stmt_execute(m_statementPtr)) {
-        std::ostringstream buffer;
-
-        buffer << "failed to execute prepared statement: '"
-               << mysql_stmt_error(m_statementPtr) << '\'';
-
-        throw std::runtime_error(buffer.str());
-      }
-
-      return ResultSet(*this);
-    }
-
-    operator MYSQL_STMT*() const {
-      return m_statementPtr;
-    }
-
-  private:
-    MYSQL_STMT* const m_statementPtr;
-    MYSQL_BIND* m_bindings;
-    std::vector<boost::any> m_buffers;
-  };
-
-  MYSQL_RES* ResultSet::getResultMetaData() {
-    if (!m_resultMetaData) {
-      m_resultMetaData = mysql_stmt_result_metadata(m_statement);
-
-      auto const fieldCount(mysql_num_fields(m_resultMetaData));
-      auto const fields(mysql_fetch_fields(m_resultMetaData));
-
-      for (auto const& field :
-           boost::make_iterator_range(fields, fields + fieldCount)) {
-        (void)field.length;
-      }
-    }
-
-    return m_resultMetaData;
-  }
-}
-
-
 struct Db::Impl : boost::noncopyable {
   db::MySql mysql;
-  Statement insert;
-  Statement query;
+  db::Statement insert;
+  db::Statement query;
 
   Impl(char const* password)
       : mysql(password)
