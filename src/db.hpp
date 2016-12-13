@@ -1,5 +1,7 @@
 // (C) 2016 Marvin Sielenkemper
 
+#pragma once
+
 #include <boost/noncopyable.hpp>
 #include <memory>
 #include <string>

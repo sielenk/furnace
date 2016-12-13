@@ -1,5 +1,7 @@
 // (C) 2016 Marvin Sielenkemper
 
+#pragma once
+
 #include <mysql.h>
 
 #include <boost/noncopyable.hpp>

@@ -1,5 +1,7 @@
 // (C) 2016 Marvin Sielenkemper
 
+#pragma once
+
 #include <boost/signals2.hpp>
 #include <boost/noncopyable.hpp>
 #include <string>
