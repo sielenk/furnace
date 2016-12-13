@@ -2,6 +2,8 @@
 
 #include "db.hpp"
 
+#include "MySql.hpp"
+
 #include <mysql.h>
 
 #include <boost/any.hpp>
@@ -14,42 +16,6 @@
 
 
 namespace {
-  char const* const db_host("192.168.2.51");
-  char const* const db_user("furnace");
-  char const* const db_name("furnace");
-  unsigned int const db_port(3306);
-
-
-  class MySql : boost::noncopyable {
-  public:
-    MySql(char const* passwd) : m_mysqlPtr(mysql_init(nullptr)) {
-      if (!mysql_real_connect(
-              m_mysqlPtr, passwd ? db_host : "localhost", db_user,
-              passwd, db_name, db_port, nullptr, CLIENT_COMPRESS)) {
-        std::ostringstream buffer;
-
-        buffer << "failed to connect to database: '"
-               << mysql_error(m_mysqlPtr) << '\'';
-
-        mysql_close(m_mysqlPtr);
-
-        throw std::runtime_error(buffer.str());
-      }
-    }
-
-    ~MySql() {
-      mysql_close(m_mysqlPtr);
-    }
-
-    operator MYSQL*() const {
-      return m_mysqlPtr;
-    }
-
-  private:
-    MYSQL* const m_mysqlPtr;
-  };
-
-
   class Statement;
 
   class Result {
@@ -115,7 +81,7 @@ namespace {
 
   class Statement : boost::noncopyable {
   public:
-    Statement(MySql& mysql, std::string const& statement)
+    Statement(db::MySql& mysql, std::string const& statement)
         : m_statementPtr(mysql_stmt_init(mysql))
         , m_bindings(nullptr)
         , m_buffers() {
@@ -214,7 +180,7 @@ namespace {
 
 
 struct Db::Impl : boost::noncopyable {
-  MySql mysql;
+  db::MySql mysql;
   Statement insert;
   Statement query;
 
