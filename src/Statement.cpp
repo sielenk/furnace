@@ -15,7 +15,9 @@
 namespace {
   struct MySqlResultDeleter {
     void operator()(MYSQL_RES* p) const {
-      mysql_free_result(p);
+      if (p) {
+        mysql_free_result(p);
+      }
     }
   };
 }
@@ -24,7 +26,9 @@ typedef std::unique_ptr<MYSQL_RES, MySqlResultDeleter> MySqlResult;
 
 
 void db::Statement::Deleter::operator()(MYSQL_STMT* p) const {
-  mysql_stmt_close(p);
+  if (p) {
+    mysql_stmt_close(p);
+  }
 };
 
 
@@ -42,20 +46,10 @@ db::Statement::Statement(MySql& mysql, std::string const& statement)
     throw std::runtime_error(buffer.str());
   }
 
-  if (auto const paramMetaData =
-          MySqlResult(mysql_stmt_param_metadata(*this))) {
-    auto const fieldCount(mysql_num_fields(paramMetaData.get()));
-    auto const fields(mysql_fetch_fields(paramMetaData.get()));
-
-    m_bindings.reset(new MYSQL_BIND[fieldCount]);
-    m_buffers.resize(fieldCount);
-
-    for (auto const i : boost::counting_range(0U, fieldCount)) {
-      auto const& field(fields[i]);
-      auto& binding(m_bindings[i]);
-
-      binding.buffer_type = field.type;
-    }
+  if (auto const paramCount =
+          mysql_stmt_param_count(*this)) {
+    m_bindings.reset(new MYSQL_BIND[paramCount]);
+    m_buffers.resize(paramCount);
   }
 }
 
