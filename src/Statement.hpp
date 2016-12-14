@@ -5,7 +5,9 @@
 #include "MySql.hpp"
 
 #include <boost/any.hpp>
+
 #include <vector>
+#include <memory>
 
 
 namespace db {
@@ -23,8 +25,16 @@ namespace db {
     operator MYSQL_STMT*() const;
 
   private:
-    MYSQL_STMT* const m_statementPtr;
-    MYSQL_BIND* m_bindings;
-    std::vector<boost::any> m_buffers;
+    struct Deleter {
+      void operator()(MYSQL_STMT*) const;
+    };
+
+    typedef std::unique_ptr<MYSQL_STMT, Deleter> StatementPtr;
+    typedef std::unique_ptr<MYSQL_BIND[]> BindingsPtr;
+    typedef std::vector<boost::any> Buffers;
+
+    StatementPtr const m_statementPtr;
+    BindingsPtr m_bindings;
+    Buffers m_buffers;
   };
 }
