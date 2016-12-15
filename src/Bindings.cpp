@@ -3,15 +3,10 @@
 #include "Bindings.hpp"
 
 
-db::Bindings::Bindings()
-    : boost::noncopyable(), m_bindings(), m_buffers() {
-}
-
-
-db::Bindings::Bindings(size_type size)
+db::Bindings::Bindings(Tag tag)
     : boost::noncopyable()
-    , m_bindings(new MYSQL_BIND[size])
-    , m_buffers(size, boost::any()) {
+    , m_bindings(new MYSQL_BIND[tag.size])
+    , m_buffers(tag.size, boost::any()) {
 }
 
 

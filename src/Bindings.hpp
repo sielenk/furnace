@@ -15,8 +15,11 @@ namespace db {
   public:
     typedef unsigned int size_type;
 
-    Bindings();
-    Bindings(size_type size);
+    template <class... P>
+    Bindings(P... p)
+        : Bindings(Tag{0}, p...) {
+    }
+
     ~Bindings();
 
     size_type size() const;
@@ -26,10 +29,22 @@ namespace db {
     operator MYSQL_BIND*() const;
 
   private:
+    struct Tag {
+      size_type size;
+    };
+
     typedef std::unique_ptr<MYSQL_BIND[]> BindingsPtr;
     typedef std::vector<boost::any> Buffers;
 
     BindingsPtr m_bindings;
     Buffers m_buffers;
+
+    Bindings(Tag);
+
+    template <class P, class... Ps>
+    Bindings(Tag tag, P p, Ps... ps)
+        : Bindings(Tag{tag.size + 1}, ps...) {
+      set(tag.size, p);
+    }
   };
 }
