@@ -14,6 +14,7 @@
 #include <boost/iterator/iterator_facade.hpp>
 
 #include <vector>
+#include <memory>
 
 
 namespace db {
@@ -41,9 +42,13 @@ namespace db {
     const_iterator end() const;
 
   private:
-    Statement const& m_statement;
-    MYSQL_RES* m_resultMetaData;
+    struct Deleter {
+      void operator()(MYSQL_RES*) const;
+    };
 
-    MYSQL_RES* getResultMetaData();
+    typedef std::unique_ptr<MYSQL_RES, Deleter> MySqlResPtr;
+
+    Statement const& m_statement;
+    MySqlResPtr m_resultMetaData;
   };
 }
