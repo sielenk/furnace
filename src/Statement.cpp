@@ -2,6 +2,7 @@
 
 #include "Statement.hpp"
 
+#include "Bindings.hpp"
 #include "ResultSet.hpp"
 
 #include <mysql.h>
@@ -20,9 +21,7 @@ void db::Statement::Deleter::operator()(MYSQL_STMT* p) const {
 
 
 db::Statement::Statement(MySql& mysql, std::string const& statement)
-    : m_statementPtr(mysql_stmt_init(mysql))
-    , m_bindings()
-    , m_buffers() {
+    : m_statementPtr(mysql_stmt_init(mysql)) {
   if (mysql_stmt_prepare(*this, statement.data(),
                          statement.length())) {
     std::ostringstream buffer;
@@ -32,11 +31,6 @@ db::Statement::Statement(MySql& mysql, std::string const& statement)
 
     throw std::runtime_error(buffer.str());
   }
-
-  if (auto const paramCount = mysql_stmt_param_count(*this)) {
-    m_bindings.reset(new MYSQL_BIND[paramCount]);
-    m_buffers.resize(paramCount);
-  }
 }
 
 
@@ -44,26 +38,27 @@ db::Statement::~Statement() {
 }
 
 
-void db::Statement::set(int index, std::string const& param) {
-  typedef std::pair<std::string, unsigned long> Buffer;
+db::ResultSet db::Statement::execute() {
+  Bindings bindings;
 
-  auto& anyBuffer(m_buffers.at(index));
-  auto& binding(m_bindings[index]);
-
-  anyBuffer = Buffer(param, param.length());
-
-  auto& buffer(boost::any_cast<Buffer&>(anyBuffer));
-
-  binding.buffer_type   = MYSQL_TYPE_STRING;
-  binding.buffer        = const_cast<char*>(buffer.first.data());
-  binding.buffer_length = buffer.second;
-  binding.is_null       = nullptr;
-  binding.length        = &buffer.second;
+  return execute(bindings);
 }
 
 
-db::ResultSet db::Statement::execute() {
-  if (mysql_stmt_bind_param(*this, m_bindings.get())) {
+db::ResultSet db::Statement::execute(Bindings& parameterBindings) {
+  auto const paramCount(mysql_stmt_param_count(*this));
+  auto const bindingCount(parameterBindings.size());
+
+  if (paramCount > bindingCount) {
+    std::ostringstream buffer;
+
+    buffer << "not enough bindings: expected " << paramCount
+           << ", got only " << bindingCount;
+
+    throw std::runtime_error(buffer.str());
+  }
+
+  if (mysql_stmt_bind_param(*this, parameterBindings)) {
     std::ostringstream buffer;
 
     buffer << "failed to bind parameters: '"

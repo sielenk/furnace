@@ -5,6 +5,7 @@
 #include "MySql.hpp"
 #include "Statement.hpp"
 #include "ResultSet.hpp"
+#include "Bindings.hpp"
 
 #include <mysql.h>
 
@@ -42,9 +43,10 @@ Db::~Db() {
 
 void Db::addSerialLine(std::string const& line) {
   auto& insert(m_implPtr->insert);
+  db::Bindings bindings(1);
 
-  insert.set(0, line);
-  insert.execute();
+  bindings.set(0, line);
+  insert.execute(bindings);
 }
 
 void Db::getLines(

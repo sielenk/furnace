@@ -12,15 +12,15 @@
 
 namespace db {
   class ResultSet;
+  class Bindings;
 
   class Statement : boost::noncopyable {
   public:
     Statement(MySql& mysql, std::string const& statement);
     ~Statement();
 
-    void set(int index, std::string const& param);
-
     ResultSet execute();
+    ResultSet execute(Bindings& parameterBindings);
 
     operator MYSQL_STMT*() const;
 
@@ -30,11 +30,7 @@ namespace db {
     };
 
     typedef std::unique_ptr<MYSQL_STMT, Deleter> StatementPtr;
-    typedef std::unique_ptr<MYSQL_BIND[]> BindingsPtr;
-    typedef std::vector<boost::any> Buffers;
 
     StatementPtr const m_statementPtr;
-    BindingsPtr m_bindings;
-    Buffers m_buffers;
   };
 }
