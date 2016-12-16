@@ -24,8 +24,6 @@ namespace db {
 
     size_type size() const;
 
-    void set(size_type index, std::string const& param);
-
     operator MYSQL_BIND*() const;
 
   private:
@@ -46,5 +44,7 @@ namespace db {
         : Bindings(Tag{tag.size + 1}, ps...) {
       set(tag.size, p);
     }
+
+    void set(size_type index, std::string const& param);
   };
 }
