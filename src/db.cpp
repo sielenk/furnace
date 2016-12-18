@@ -2,12 +2,10 @@
 
 #include "db.hpp"
 
-#include "MySql.hpp"
-#include "Statement.hpp"
-#include "ResultSet.hpp"
-#include "Bindings.hpp"
-
-#include <mysql.h>
+#include "db/MySql.hpp"
+#include "db/Statement.hpp"
+#include "db/ResultSet.hpp"
+#include "db/Bindings.hpp"
 
 #include <boost/any.hpp>
 #include <boost/range/iterator_range_core.hpp>

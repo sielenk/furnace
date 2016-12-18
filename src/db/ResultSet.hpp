@@ -2,8 +2,6 @@
 
 #pragma once
 
-#include "db.hpp"
-
 #include "MySql.hpp"
 #include "Result.hpp"
 
