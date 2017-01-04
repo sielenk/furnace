@@ -23,6 +23,7 @@ BOOST_FOREACH()
 BOOST_SIGNALS2()
 
 # Checks for header files.
+AC_CHECK_HEADER_STDBOOL
 AC_CHECK_HEADERS([fcntl.h])
 AC_CHECK_HEADERS([termios.h])
 
