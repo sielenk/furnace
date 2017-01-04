@@ -22,6 +22,10 @@ BOOST_REQUIRE(1.55)
 BOOST_FOREACH()
 BOOST_SIGNALS2()
 
+PKG_CHECK_MODULES([LIBCONFIGXX], [libconfig++ >= 1.4],,
+  AC_MSG_ERROR([libconfig++ 1.4 or newer not found.])
+)
+
 # Checks for header files.
 AC_CHECK_HEADER_STDBOOL
 AC_CHECK_HEADERS([fcntl.h])
