@@ -9,7 +9,7 @@
 namespace {
   class DbConfigImpl : public db::Config {
   public:
-    DbConfigImpl(char const* passwd);
+    DbConfigImpl(std::string const& passwd);
     virtual ~DbConfigImpl();
 
     virtual std::string dbHost() const override;
@@ -17,14 +17,15 @@ namespace {
     virtual std::string dbName() const override;
     virtual std::string dbPassword() const override;
     virtual unsigned int dbPort() const override;
-    
-    private:
-    char const* m_passwd;
+
+  private:
+    std::string m_passwd;
   };
 }
 
 
-DbConfigImpl::DbConfigImpl(char const* passwd) : db::Config(), m_passwd(passwd) {
+DbConfigImpl::DbConfigImpl(std::string const& passwd)
+    : db::Config(), m_passwd(passwd) {
 }
 
 
@@ -33,7 +34,7 @@ DbConfigImpl::~DbConfigImpl() {
 
 
 std::string DbConfigImpl::dbHost() const {
-  return "localhost";
+  return m_passwd.empty() ? "localhost" : "192.168.2.51";
 }
 
 
@@ -48,7 +49,7 @@ std::string DbConfigImpl::dbName() const {
 
 
 std::string DbConfigImpl::dbPassword() const {
-  return m_passwd ? m_passwd : "";
+  return m_passwd;
 }
 
 
@@ -63,7 +64,7 @@ unsigned int DbConfigImpl::dbPort() const {
 namespace {
   class ConfigImpl : public Config {
   public:
-    ConfigImpl(char const* passwd);
+    ConfigImpl(std::string const& passwd);
     virtual ~ConfigImpl();
 
     virtual db::Config const& dbConfig() const override;
@@ -74,7 +75,8 @@ namespace {
 }
 
 
-ConfigImpl::ConfigImpl(char const* passwd) : Config(), m_dbConfig(passwd) {
+ConfigImpl::ConfigImpl(std::string const& passwd)
+    : Config(), m_dbConfig(passwd) {
 }
 
 
@@ -92,14 +94,14 @@ db::Config const& ConfigImpl::dbConfig() const {
 
 class ConfigFile::Impl {
 public:
-  Impl(char const* passwd);
+  Impl(std::string const& passwd);
   ~Impl();
 
   ConfigImpl config;
 };
 
 
-ConfigFile::Impl::Impl(char const* passwd) : config(passwd) {
+ConfigFile::Impl::Impl(std::string const& passwd) : config(passwd) {
 }
 
 
@@ -110,7 +112,8 @@ ConfigFile::Impl::~Impl() {
 //-------------------------------------------------------------------
 
 
-ConfigFile::ConfigFile(char const* passwd) : boost::noncopyable(), m_pImpl(new Impl(passwd)) {
+ConfigFile::ConfigFile(std::string const& passwd)
+    : boost::noncopyable(), m_pImpl(new Impl(passwd)) {
 }
 
 

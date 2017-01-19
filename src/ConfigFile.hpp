@@ -8,7 +8,7 @@
 
 class ConfigFile : boost::noncopyable {
 public:
-  ConfigFile(char const* passwd = nullptr);
+  ConfigFile(std::string const& passwd = std::string());
   ~ConfigFile();
 
   Config const& config() const;

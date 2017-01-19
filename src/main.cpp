@@ -14,7 +14,7 @@ int main(int argc, char** argv) {
   std::string passwd;
 
   getline(std::cin, passwd);
-  
+
   ConfigFile const configFile(passwd.c_str());
   auto const& config(configFile.config());
 
