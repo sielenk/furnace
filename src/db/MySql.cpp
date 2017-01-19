@@ -14,11 +14,13 @@ namespace {
 }
 
 
-db::MySql::MySql(char const* passwd)
+db::MySql::MySql(Config const& config)
     : m_mysqlPtr(mysql_init(nullptr)) {
-  if (!mysql_real_connect(m_mysqlPtr, passwd ? db_host : "localhost",
-                          db_user, passwd, db_name, db_port, nullptr,
-                          CLIENT_COMPRESS)) {
+  if (!mysql_real_connect(m_mysqlPtr, config.dbHost().c_str(),
+                          config.dbUser().c_str(),
+                          config.dbPassword().c_str(),
+                          config.dbName().c_str(), config.dbPort(),
+                          nullptr, CLIENT_COMPRESS)) {
     std::ostringstream buffer;
 
     buffer << "failed to connect to database: '"

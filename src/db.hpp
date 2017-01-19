@@ -2,6 +2,8 @@
 
 #pragma once
 
+#include "Config.hpp"
+
 #include <boost/noncopyable.hpp>
 #include <memory>
 #include <string>
@@ -10,8 +12,7 @@
 
 class Db : boost::noncopyable {
 public:
-  Db();
-  Db(std::string const& passwd);
+  Db(Config const& config);
   ~Db();
 
   void addSerialLine(std::string const& line);

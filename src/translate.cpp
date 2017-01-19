@@ -1,6 +1,7 @@
 // (C) 2016 Marvin Sielenkemper
 
 #include "db.hpp"
+#include "ConfigFile.hpp"
 
 #include <fstream>
 #include <sstream>
@@ -49,7 +50,8 @@ struct Sample {
 
 
 int main(int argc, char const* argv[]) {
-  Db db;
+  ConfigFile configFile;
+  Db db(configFile.config());
 
   db.getLines([](int id, int time, std::string const& line) {
     try {

@@ -2,6 +2,8 @@
 
 #pragma once
 
+#include "Config.hpp"
+
 #include <mysql.h>
 
 #include <boost/noncopyable.hpp>
@@ -10,7 +12,7 @@
 namespace db {
   class MySql : boost::noncopyable {
   public:
-    MySql(char const* passwd);
+    MySql(Config const& config);
     ~MySql();
 
     operator MYSQL*() const;

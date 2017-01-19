@@ -2,6 +2,7 @@
 
 #include "db.hpp"
 
+#include "Config.hpp"
 #include "db/MySql.hpp"
 #include "db/Statement.hpp"
 #include "db/ResultSet.hpp"
@@ -21,19 +22,15 @@ struct Db::Impl : boost::noncopyable {
   db::Statement insert;
   db::Statement query;
 
-  Impl(char const* password)
-      : mysql(password)
+  Impl(Config const& config)
+      : mysql(config.dbConfig())
       , insert(mysql, "INSERT INTO serial_log(line) VALUES(?)")
       , query(mysql, "SELECT id, time, line FROM serial_log") {
   }
 };
 
 
-Db::Db() : m_implPtr(new Impl(nullptr)) {
-}
-
-Db::Db(std::string const& password)
-    : m_implPtr(new Impl(password.c_str())) {
+Db::Db(Config const& config) : m_implPtr(new Impl(config)) {
 }
 
 Db::~Db() {
