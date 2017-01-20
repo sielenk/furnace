@@ -2,6 +2,9 @@
 
 #include "ConfigFile.hpp"
 
+#include "libconfig.h++"
+
+namespace lc = libconfig;
 
 //-------------------------------------------------------------------
 
@@ -9,7 +12,7 @@
 namespace {
   class DbConfigImpl : public db::Config {
   public:
-    DbConfigImpl(std::string const& passwd);
+    DbConfigImpl(lc::Setting const& setting);
     virtual ~DbConfigImpl();
 
     virtual std::string dbHost() const override;
@@ -19,13 +22,13 @@ namespace {
     virtual unsigned int dbPort() const override;
 
   private:
-    std::string m_passwd;
+    lc::Setting const& m_setting;
   };
 }
 
 
-DbConfigImpl::DbConfigImpl(std::string const& passwd)
-    : db::Config(), m_passwd(passwd) {
+DbConfigImpl::DbConfigImpl(lc::Setting const& setting)
+    : db::Config(), m_setting(setting) {
 }
 
 
@@ -34,27 +37,37 @@ DbConfigImpl::~DbConfigImpl() {
 
 
 std::string DbConfigImpl::dbHost() const {
-  return m_passwd.empty() ? "localhost" : "192.168.2.51";
+  std::string host("localhost");
+  m_setting.lookupValue("host", host);
+  return host;
 }
 
 
 std::string DbConfigImpl::dbUser() const {
-  return "furnace";
+  std::string user("furnace");
+  m_setting.lookupValue("user", user);
+  return user;
 }
 
 
 std::string DbConfigImpl::dbName() const {
-  return "furnace";
+  std::string name("furnace");
+  m_setting.lookupValue("name", name);
+  return name;
 }
 
 
 std::string DbConfigImpl::dbPassword() const {
-  return m_passwd;
+  std::string password;
+  m_setting.lookupValue("password", password);
+  return password;
 }
 
 
 unsigned int DbConfigImpl::dbPort() const {
-  return 3306;
+  unsigned int port(3306);
+  m_setting.lookupValue("port", port);
+  return port;
 }
 
 
@@ -64,7 +77,7 @@ unsigned int DbConfigImpl::dbPort() const {
 namespace {
   class ConfigImpl : public Config {
   public:
-    ConfigImpl(std::string const& passwd);
+    ConfigImpl(lc::Setting const& setting);
     virtual ~ConfigImpl();
 
     virtual db::Config const& dbConfig() const override;
@@ -75,8 +88,8 @@ namespace {
 }
 
 
-ConfigImpl::ConfigImpl(std::string const& passwd)
-    : Config(), m_dbConfig(passwd) {
+ConfigImpl::ConfigImpl(lc::Setting const& setting)
+    : Config(), m_dbConfig(setting.lookup("db")) {
 }
 
 
@@ -93,15 +106,29 @@ db::Config const& ConfigImpl::dbConfig() const {
 
 
 class ConfigFile::Impl {
+  static lc::Config& init(lc::Config& config,
+                          std::string const& configPath);
+
+  lc::Config m_config;
+
 public:
-  Impl(std::string const& passwd);
+  Impl(std::string const& configPath);
   ~Impl();
 
   ConfigImpl config;
 };
 
 
-ConfigFile::Impl::Impl(std::string const& passwd) : config(passwd) {
+lc::Config& ConfigFile::Impl::init(lc::Config& config,
+                                   std::string const& configPath) {
+  config.readFile(configPath.c_str());
+
+  return config;
+}
+
+
+ConfigFile::Impl::Impl(std::string const& configPath)
+    : m_config(), config(init(m_config, configPath).getRoot()) {
 }
 
 
@@ -112,14 +139,12 @@ ConfigFile::Impl::~Impl() {
 //-------------------------------------------------------------------
 
 
-ConfigFile::ConfigFile(std::string const& passwd)
-    : boost::noncopyable(), m_pImpl(new Impl(passwd)) {
+ConfigFile::ConfigFile(std::string const& configPath)
+    : boost::noncopyable(), m_pImpl(new Impl(configPath)) {
 }
 
 
 ConfigFile::~ConfigFile() {
-  delete m_pImpl;
-  m_pImpl = nullptr;
 }
 
 

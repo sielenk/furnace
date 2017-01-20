@@ -5,17 +5,12 @@
 #include "ConfigFile.hpp"
 
 #include <memory>
-#include <iostream>
 
 #include <unistd.h>
 
 
 int main(int argc, char** argv) {
-  std::string passwd;
-
-  getline(std::cin, passwd);
-
-  ConfigFile const configFile(passwd.c_str());
+  ConfigFile const configFile("furnace.conf");
   auto const& config(configFile.config());
 
   std::unique_ptr<Db> dbPtr;

@@ -4,11 +4,12 @@
 
 #include "Config.hpp"
 #include <boost/noncopyable.hpp>
+#include <memory>
 
 
 class ConfigFile : boost::noncopyable {
 public:
-  ConfigFile(std::string const& passwd = std::string());
+  ConfigFile(std::string const& configPath);
   ~ConfigFile();
 
   Config const& config() const;
@@ -16,5 +17,5 @@ public:
 private:
   class Impl;
 
-  Impl* m_pImpl;
+  std::unique_ptr<Impl> m_pImpl;
 };

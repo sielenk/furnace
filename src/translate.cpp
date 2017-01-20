@@ -1,3 +1,4 @@
+
 // (C) 2016 Marvin Sielenkemper
 
 #include "db.hpp"
@@ -50,7 +51,7 @@ struct Sample {
 
 
 int main(int argc, char const* argv[]) {
-  ConfigFile configFile;
+  ConfigFile configFile("furnace.conf");
   Db db(configFile.config());
 
   db.getLines([](int id, int time, std::string const& line) {
