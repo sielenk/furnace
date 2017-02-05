@@ -89,7 +89,7 @@ namespace {
 
 
 ConfigImpl::ConfigImpl(lc::Setting const& setting)
-    : Config(), m_dbConfig(setting.lookup("db")) {
+    : Config(), m_dbConfig(setting["db"]) {
 }
 
 
