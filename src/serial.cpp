@@ -58,7 +58,7 @@ struct Serial::Impl : boost::noncopyable {
             [this]() { handleIo(); }))
       , lineReceived(lineReceived) {
     if (ttyFd < 0) {
-      throw std::runtime_error("");
+      throw std::runtime_error("failed to open /dev/ttyAMA0");
     }
 
     tcgetattr(ttyFd, &oldTIo);
